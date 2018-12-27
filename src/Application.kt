@@ -25,6 +25,8 @@ fun Application.module(testing: Boolean = false) {
             //transform(SessionTransportTransformerEncrypt(encryptionKey = "dcfdcedbd956398g".toByteArray(), signKey = "dcfdcedbd956398g".toByteArray()))
             cookie.path = "/" // Specify cookie's path '/' so it can be used in the whole site
         }
+
+        cookie<CookieContainer>("container")
     }
 
     install(ContentNegotiation) {
@@ -41,6 +43,10 @@ fun Application.module(testing: Boolean = false) {
         get("/session/increment") {
             val session = call.sessions.get<MySession>() ?: MySession()
             call.sessions.set(session.copy(count = session.count + 1))
+
+            val cookies = call.sessions.get<CookieContainer>() ?: CookieContainer()
+            cookies.data["hoge"] = "fuga"
+            call.sessions.set(cookies)
             call.respondText("Counter is ${session.count}. Refresh to increment.")
         }
 
@@ -51,4 +57,5 @@ fun Application.module(testing: Boolean = false) {
 }
 
 data class MySession(val count: Int = 0)
+data class CookieContainer(val data: HashMap<String, String> = hashMapOf())
 
