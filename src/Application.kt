@@ -9,6 +9,7 @@ import io.ktor.sessions.*
 import com.fasterxml.jackson.databind.*
 import io.ktor.jackson.*
 import io.ktor.features.*
+import java.io.File
 
 fun main(args: Array<String>): Unit = io.ktor.server.tomcat.EngineMain.main(args)
 
@@ -16,8 +17,13 @@ fun main(args: Array<String>): Unit = io.ktor.server.tomcat.EngineMain.main(args
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(Sessions) {
-        cookie<MySession>("MY_SESSION") {
-            cookie.extensions["SameSite"] = "lax"
+        cookie<MySession>(
+            "LSESSION_FEATURE_SESSION_ID",
+             SessionStorageMemory()
+            //directorySessionStorage(File(".sessions"), cached = true)
+        ) {
+            //transform(SessionTransportTransformerEncrypt(encryptionKey = "dcfdcedbd956398g".toByteArray(), signKey = "dcfdcedbd956398g".toByteArray()))
+            cookie.path = "/" // Specify cookie's path '/' so it can be used in the whole site
         }
     }
 
