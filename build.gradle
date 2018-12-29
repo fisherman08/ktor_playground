@@ -35,5 +35,7 @@ dependencies {
     compile "io.ktor:ktor-server-core:$ktor_version"
     compile "io.ktor:ktor-server-sessions:$ktor_version"
     compile "io.ktor:ktor-jackson:$ktor_version"
+    compile "io.ktor:ktor-auth:$ktor_version"
+    compile "io.ktor:ktor-html-builder:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 }
