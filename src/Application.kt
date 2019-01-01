@@ -15,6 +15,8 @@ import kotlinx.html.*
 import java.io.File
 import java.util.*
 
+import com.github.fisherman08.session
+
 fun main(args: Array<String>): Unit = io.ktor.server.tomcat.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
@@ -52,6 +54,22 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
         }
+
+        session(name = "session_check"){
+            challenge = SessionAuthChallenge.Redirect{
+                val params = listOf(
+                    "m" to "ログインしてけろ"
+                ).formUrlEncode()
+                "/login?$params"
+            }
+            validate{ session ->
+                if(session.user_id != null) {
+                    UserPrincipal(id = 11)
+                } else {
+                    null
+                }
+            }
+        }
     }
 
 
@@ -68,18 +86,11 @@ fun Application.module(testing: Boolean = false) {
         }
 
 
-        route("/admin") {
-            // /admin以下はセッションにuser_idがセットされていないとダメ
-            intercept(ApplicationCallPipeline.Features){
-                val session = call.sessions.get<MySession>() ?: MySession()
-                val user_id = session.user_id
-                if(user_id == null){
-                    call.respondRedirect("/login")
-                    finish()
-                }
-            }
+        authenticate("session_check") {
+            route("/admin") {
 
-            route("index") {
+                route("index") {
+
                     get {
                         call.respondHtml {
                             body {
@@ -89,6 +100,8 @@ fun Application.module(testing: Boolean = false) {
                             }
                         }
                     }
+                }
+
 
             }
 
@@ -97,9 +110,17 @@ fun Application.module(testing: Boolean = false) {
 
         route("/login") {
             get {
+                val params = call.parameters
+                val message = params["m"]
                 call.respondHtml {
                     body {
                         form(action = "/login", method = FormMethod.post) {
+                            if(message != null){
+                                p{
+                                    +message
+                                }
+                            }
+
                             p {
                                 +"Email: "
                                 textInput(name = "email") { value = "" }
